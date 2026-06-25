@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
 using Extensibility;
-using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Outlook;
 
 namespace OutlookPurviewColumn
