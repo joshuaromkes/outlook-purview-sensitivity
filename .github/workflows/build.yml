@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v2
+
+    - name: Restore packages
+      run: nuget restore src/OutlookPurviewColumn.sln
+
+    - name: Build
+      run: msbuild src/OutlookPurviewColumn.sln /p:Configuration=Release /p:Platform="Any CPU"
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: OutlookPurviewColumn
+        path: src/OutlookPurviewColumn/bin/Release/

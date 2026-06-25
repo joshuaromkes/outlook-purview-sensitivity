@@ -1,0 +1,25 @@
+## Ignore Visual Studio temporary files and build output
+*.suo
+*.user
+*.vs/
+bin/
+obj/
+Debug/
+Release/
+*.vshost.exe
+*.vshost.exe.config
+*.vshost.exe.manifest
+
+## Ignore VSTO publish output
+publish/
+
+## Ignore NuGet packages
+packages/
+*.nupkg
+
+## Ignore test results
+TestResults/
+
+## OS files
+.DS_Store
+Thumbs.db
