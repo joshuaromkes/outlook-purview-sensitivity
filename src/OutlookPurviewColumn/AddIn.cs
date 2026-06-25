@@ -15,14 +15,31 @@ namespace OutlookPurviewColumn
 
         public void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
-            _app = Application as Microsoft.Office.Interop.Outlook.Application;
+            try
+            {
+                System.Windows.Forms.MessageBox.Show("Add-in OnConnection fired.", "PurviewColumn");
+                _app = Application as Microsoft.Office.Interop.Outlook.Application;
+            }
+            catch (System.Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"OnConnection crashed: {ex}", "PurviewColumn");
+            }
         }
 
         public void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
         {
-            if (_app?.ActiveExplorer() != null)
+            if (_app != null)
             {
-                _app.ActiveExplorer().FolderSwitch -= Explorer_FolderSwitch;
+                try
+                {
+                    var explorer = _app.ActiveExplorer();
+                    if (explorer != null)
+                    {
+                        explorer.FolderSwitch -= Explorer_FolderSwitch;
+                        Marshal.ReleaseComObject(explorer);
+                    }
+                }
+                catch { }
             }
             _app = null;
         }
