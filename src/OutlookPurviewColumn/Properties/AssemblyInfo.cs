@@ -1,13 +1,38 @@
-using System.Reflection;
+﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security;
 
+// General Information about an assembly is controlled through the following 
+// set of attributes. Change these attribute values to modify the information
+// associated with an assembly.
 [assembly: AssemblyTitle("OutlookPurviewColumn")]
-[assembly: AssemblyDescription("Adds a Purview sensitivity label column to Outlook folder views")]
-[assembly: AssemblyCompany("open-source")]
-[assembly: AssemblyProduct("Outlook Purrrview Sensitivity")]
-[assembly: AssemblyCopyright("MIT License")]
+[assembly: AssemblyDescription("Adds Purview sensitivity label column to Outlook")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("Open Source")]
+[assembly: AssemblyProduct("OutlookPurviewColumn")]
+[assembly: AssemblyCopyright("Copyright ©  2026")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+
+// Setting ComVisible to false makes the types in this assembly not visible 
+// to COM components.  If you need to access a type in this assembly from 
+// COM, set the ComVisible attribute to true on that type.
+[assembly: ComVisible(false)]
+
+// The following GUID is for the ID of the typelib if this project is exposed to COM
+[assembly: Guid("fad518e8-078a-4837-b15d-1fd9295ed31e")]
+
+// Version information for an assembly consists of the following four values:
+//
+//      Major Version
+//      Minor Version 
+//      Build Number
+//      Revision
+//
+// You can specify all the values or you can default the Build and Revision Numbers 
+// by using the '*' as shown below:
+// [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
-[assembly: ComVisible(true)]
-[assembly: Guid("E7D8C9B0-A1F2-3456-7890-ABCDEF123456")]
