@@ -144,6 +144,16 @@ namespace Outlook_Purview_Sensitivity
 
                 Debug.WriteLine($"[CM] StampFolder done: {count} stamped, {mailCount} mail items seen");
                 Marshal.ReleaseComObject(items);
+
+                // Force view refresh to show new values
+                object view = folder.CurrentView;
+                if (view is TableView tableView)
+                {
+                    tableView.Apply();
+                    Debug.WriteLine("[CM] View refreshed");
+                    Marshal.ReleaseComObject(tableView);
+                }
+                Marshal.ReleaseComObject(view);
             }
             catch (SysException ex)
             {
