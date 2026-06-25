@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.Office.Interop.Outlook;
+using SysException = System.Exception;
 
 namespace OutlookPurviewColumn
 {
@@ -76,7 +77,7 @@ namespace OutlookPurviewColumn
                     }
                 }
             }
-            catch (Exception ex)
+            catch (SysException ex)
             {
                 Debug.WriteLine($"[OutlookPurviewColumn] Error ensuring column in folder '{folder.Name}': {ex.Message}");
             }
@@ -119,7 +120,7 @@ namespace OutlookPurviewColumn
 
                 Debug.WriteLine($"[OutlookPurviewColumn] Stamped item: {mailItem.Subject} → {labelName}");
             }
-            catch (Exception ex)
+            catch (SysException ex)
             {
                 Debug.WriteLine($"[OutlookPurviewColumn] Error stamping item '{mailItem.Subject}': {ex.Message}");
             }
@@ -159,7 +160,7 @@ namespace OutlookPurviewColumn
                     Debug.WriteLine($"[OutlookPurviewColumn] Batch stamped {count} items in folder: {folder.Name}");
                 }
             }
-            catch (Exception ex)
+            catch (SysException ex)
             {
                 Debug.WriteLine($"[OutlookPurviewColumn] Error stamping folder '{folder.Name}': {ex.Message}");
             }

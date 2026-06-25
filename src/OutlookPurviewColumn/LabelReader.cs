@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.Office.Interop.Outlook;
+using SysException = System.Exception;
 
 namespace OutlookPurviewColumn
 {
@@ -40,7 +41,7 @@ namespace OutlookPurviewColumn
                 // Parse the friendly name from the msip string
                 return LabelResolver.GetLabelName(msipLabels);
             }
-            catch (Exception ex)
+            catch (SysException ex)
             {
                 // Property may not exist on the item (no label applied, or not an email
                 // with Purview labels). This is an expected case — not an error.
