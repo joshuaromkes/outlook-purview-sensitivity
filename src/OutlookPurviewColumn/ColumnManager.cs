@@ -8,86 +8,81 @@ namespace OutlookPurviewColumn
 {
     /// <summary>
     /// Manages the custom "PurviewLabel" column in Outlook folder views.
-    ///
-    /// Adds a user-defined field to each folder and injects it as a visible
-    /// column in the folder's table view. Stamps individual MailItems with
-    /// their sensitivity label so it appears in the column.
+    /// All COM interop collections are iterated with integer-indexed loops
+    /// to avoid foreach/enumerator issues with Office interop.
     /// </summary>
     internal static class ColumnManager
     {
-        /// <summary>
-        /// The name of the user-defined field we add to each folder.
-        /// This is what appears as the column header.
-        /// </summary>
         public const string FieldName = "PurviewLabel";
 
         /// <summary>
-        /// Display name for the column in the view.
+        /// Ensures the PurviewLabel user-defined property exists in the folder
+        /// and is added as a column in the current table view.
         /// </summary>
-        public const string ColumnDisplayName = "Purview Label";
-
-        /// <summary>
-        /// Ensures the PurviewLabel column exists in the given folder's view.
-        /// Idempotent — safe to call on every folder switch.
-        /// </summary>
-        /// <param name="folder">The Outlook folder to check/modify.</param>
         public static void EnsureColumn(MAPIFolder folder)
         {
             if (folder == null) return;
 
             try
             {
-                // Step 1: Add the user-defined property to the folder (if missing)
+                // Step 1: Add user-defined property to folder (if missing)
                 var props = folder.UserDefinedProperties;
                 bool found = false;
-                foreach (UserDefinedProperty prop in props)
+                for (int i = 1; i <= props.Count; i++)
                 {
+                    var prop = props[i];
                     if (prop.Name == FieldName)
                     {
                         found = true;
+                        Marshal.ReleaseComObject(prop);
                         break;
                     }
+                    Marshal.ReleaseComObject(prop);
                 }
 
                 if (!found)
                 {
                     props.Add(FieldName, OlUserPropertyType.olText);
-                    Debug.WriteLine($"[OutlookPurviewColumn] Added '{FieldName}' user-defined property to folder: {folder.Name}");
                 }
+                Marshal.ReleaseComObject(props);
 
-                // Step 2: Add the field to the current view (if missing)
+                // Step 2: Add field to table view (if missing)
                 var view = folder.CurrentView;
                 if (view is TableView tableView)
                 {
+                    var fields = tableView.ViewFields;
                     bool columnFound = false;
-                    foreach (ViewField field in tableView.ViewFields)
+                    for (int i = 1; i <= fields.Count; i++)
                     {
+                        var field = fields[i];
                         if (field.ViewXMLSchemaName == FieldName)
                         {
                             columnFound = true;
+                            Marshal.ReleaseComObject(field);
                             break;
                         }
+                        Marshal.ReleaseComObject(field);
                     }
 
                     if (!columnFound)
                     {
-                        tableView.ViewFields.Add(FieldName);
+                        fields.Add(FieldName);
                         tableView.Save();
-                        Debug.WriteLine($"[OutlookPurviewColumn] Added '{FieldName}' column to view: {folder.Name}");
                     }
+                    Marshal.ReleaseComObject(fields);
+                    Marshal.ReleaseComObject(tableView);
                 }
+                Marshal.ReleaseComObject(view);
             }
             catch (SysException ex)
             {
-                Debug.WriteLine($"[OutlookPurviewColumn] Error ensuring column in folder '{folder.Name}': {ex.Message}");
+                Debug.WriteLine($"[OutlookPurviewColumn] EnsureColumn error: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Stamps a single MailItem with its Purview label in the UserProperties.
-        /// This is what makes the label visible in the column.
+        /// Stamps a single MailItem with its Purview label.
         /// </summary>
-        /// <param name="mailItem">The MailItem to stamp.</param>
         public static void StampItem(MailItem mailItem)
         {
             if (mailItem == null) return;
@@ -96,43 +91,38 @@ namespace OutlookPurviewColumn
             {
                 var labelName = LabelReader.GetLabelName(mailItem);
 
-                // Check if already stamped with the correct value
+                // Check if already stamped with correct value
                 try
                 {
                     var existing = mailItem.UserProperties[FieldName];
-                    if (existing != null && existing.Value as string == labelName)
+                    if (existing != null)
                     {
+                        var val = existing.Value as string;
                         Marshal.ReleaseComObject(existing);
-                        return; // Already correct, skip
+                        if (val == labelName) return; // Already correct
                     }
-                    if (existing != null) Marshal.ReleaseComObject(existing);
                 }
                 catch
                 {
-                    // Property doesn't exist yet on this item — expected
+                    // Property doesn't exist yet — expected
                 }
 
-                // Stamp the label
+                // Add or update
                 var userProp = mailItem.UserProperties.Add(FieldName, OlUserPropertyType.olText);
                 userProp.Value = labelName;
                 mailItem.Save();
                 Marshal.ReleaseComObject(userProp);
-
-                Debug.WriteLine($"[OutlookPurviewColumn] Stamped item: {mailItem.Subject} → {labelName}");
             }
             catch (SysException ex)
             {
-                Debug.WriteLine($"[OutlookPurviewColumn] Error stamping item '{mailItem.Subject}': {ex.Message}");
+                Debug.WriteLine($"[OutlookPurviewColumn] StampItem error: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Batch stamps unlabeled items in a folder. Processes up to maxItems
-        /// to avoid locking the UI on large folders.
+        /// Batch stamps visible items in the folder view.
         /// </summary>
-        /// <param name="folder">The folder to scan.</param>
-        /// <param name="maxItems">Maximum number of items to process in one batch.</param>
-        public static void StampFolder(MAPIFolder folder, int maxItems = 100)
+        public static void StampFolder(MAPIFolder folder, int maxItems = 50)
         {
             if (folder == null) return;
 
@@ -140,29 +130,27 @@ namespace OutlookPurviewColumn
             {
                 var items = folder.Items;
                 int count = 0;
-
-                foreach (object item in items)
+                for (int i = 1; i <= items.Count && count < maxItems; i++)
                 {
-                    if (count >= maxItems) break;
-
+                    var item = items[i];
                     if (item is MailItem mailItem)
                     {
-                        StampItem(mailItem);
+                        // Skip items without labels to avoid stamping "None" on everything
+                        var label = LabelReader.GetLabelName(mailItem);
+                        if (label != "None")
+                        {
+                            StampItem(mailItem);
+                            count++;
+                        }
                         Marshal.ReleaseComObject(mailItem);
-                        count++;
                     }
+                    Marshal.ReleaseComObject(item);
                 }
-
                 Marshal.ReleaseComObject(items);
-
-                if (count > 0)
-                {
-                    Debug.WriteLine($"[OutlookPurviewColumn] Batch stamped {count} items in folder: {folder.Name}");
-                }
             }
             catch (SysException ex)
             {
-                Debug.WriteLine($"[OutlookPurviewColumn] Error stamping folder '{folder.Name}': {ex.Message}");
+                Debug.WriteLine($"[OutlookPurviewColumn] StampFolder error: {ex.Message}");
             }
         }
     }

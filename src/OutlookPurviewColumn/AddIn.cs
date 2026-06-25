@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Extensibility;
 using Microsoft.Office.Interop.Outlook;
@@ -10,71 +11,70 @@ namespace OutlookPurviewColumn
     [ProgId("OutlookPurviewColumn.AddIn")]
     public class AddIn : IDTExtensibility2
     {
-        private object _application;
+        private Microsoft.Office.Interop.Outlook.Application _app;
 
         public void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
-            _application = Application;
-            var outlookApp = Application as Microsoft.Office.Interop.Outlook.Application;
-            if (outlookApp == null) return;
-
-            // Hook folder switches
-            var explorer = outlookApp.ActiveExplorer();
-            explorer.FolderSwitch += Explorer_FolderSwitch;
-
-            // Handle current folder if Outlook already has one open
-            var currentFolder = explorer.CurrentFolder;
-            if (currentFolder != null)
-            {
-                OnFolderOpened(currentFolder);
-                Marshal.ReleaseComObject(currentFolder);
-            }
+            _app = Application as Microsoft.Office.Interop.Outlook.Application;
         }
 
         public void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
         {
-            var outlookApp = _application as Microsoft.Office.Interop.Outlook.Application;
-            if (outlookApp != null)
+            if (_app?.ActiveExplorer() != null)
             {
-                outlookApp.ActiveExplorer().FolderSwitch -= Explorer_FolderSwitch;
+                _app.ActiveExplorer().FolderSwitch -= Explorer_FolderSwitch;
             }
-            _application = null;
+            _app = null;
         }
 
         public void OnAddInsUpdate(ref Array custom) { }
-        public void OnStartupComplete(ref Array custom) { }
         public void OnBeginShutdown(ref Array custom) { }
 
-        private void Explorer_FolderSwitch()
+        public void OnStartupComplete(ref Array custom)
         {
+            // OnStartupComplete fires after the Outlook UI is fully loaded.
+            // This is the safe time to access ActiveExplorer and hook events.
             try
             {
-                var outlookApp = _application as Microsoft.Office.Interop.Outlook.Application;
-                if (outlookApp == null) return;
+                if (_app == null) return;
 
-                var folder = outlookApp.ActiveExplorer().CurrentFolder;
+                var explorer = _app.ActiveExplorer();
+                if (explorer == null) return;
+
+                explorer.FolderSwitch += Explorer_FolderSwitch;
+
+                var folder = explorer.CurrentFolder;
                 if (folder != null)
                 {
-                    OnFolderOpened(folder);
+                    ColumnManager.EnsureColumn(folder);
                     Marshal.ReleaseComObject(folder);
                 }
             }
             catch (System.Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[OutlookPurviewColumn] Error on folder switch: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[OutlookPurviewColumn] Startup error: {ex}");
             }
         }
 
-        private void OnFolderOpened(MAPIFolder folder)
+        private void Explorer_FolderSwitch()
         {
             try
             {
-                ColumnManager.EnsureColumn(folder);
-                ColumnManager.StampFolder(folder, maxItems: 100);
+                if (_app == null) return;
+                var explorer = _app.ActiveExplorer();
+                if (explorer == null) return;
+
+                var folder = explorer.CurrentFolder;
+                if (folder != null)
+                {
+                    ColumnManager.EnsureColumn(folder);
+                    ColumnManager.StampFolder(folder, maxItems: 50);
+                    Marshal.ReleaseComObject(folder);
+                }
             }
             catch (System.Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[OutlookPurviewColumn] Error opening folder: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[OutlookPurviewColumn] FolderSwitch: {ex}");
             }
         }
     }
