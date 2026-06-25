@@ -54,13 +54,4 @@
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-
-  <!-- Post-build: register the COM add-in for debugging -->
-  <Target Name="RegisterAddIn" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
-    <Exec Command="&quot;$(FrameworkSDKDir)bin\NETFX 4.8 Tools\regasm.exe&quot; &quot;$(TargetPath)&quot; /codebase /tlb:&quot;$(TargetDir)$(TargetName).tlb&quot;" />
-  </Target>
-
-  <Target Name="UnregisterAddIn" AfterTargets="Clean">
-    <Exec Command="&quot;$(FrameworkSDKDir)bin\NETFX 4.8 Tools\regasm.exe&quot; &quot;$(TargetPath)&quot; /unregister" />
-  </Target>
 </Project>
