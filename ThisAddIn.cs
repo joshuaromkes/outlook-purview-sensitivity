@@ -47,6 +47,7 @@ namespace Outlook_Purview_Sensitivity
             if (folder != null)
             {
                 ColumnManager.EnsureColumn(folder);
+                ColumnManager.StampFolder(folder, maxItems: 50);
                 Marshal.ReleaseComObject(folder);
             }
         }

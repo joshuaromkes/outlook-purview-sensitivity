@@ -89,8 +89,8 @@ namespace Outlook_Purview_Sensitivity
 
             try
             {
-                // DEBUG: show raw MAPI value to diagnose label reading
-                string labelName = LabelReader.GetRawValue(mailItem);
+                // HARDCODED TEST: verifies stamping pipeline works
+                string labelName = "TEST-LABEL";
 
                 // Check if already stamped with the correct value
                 try
