@@ -21,6 +21,16 @@ Built as a VSTO COM add-in. No modification of email subjects, categories, or bo
 - PowerShell installer with per-user HKCU registration (no admin rights needed)
 - ClickOnce publish profile included for enterprise deployment via Intune / SCCM
 
+## Tips for Users
+
+Outlook already has everything you need to work with the Sensitivity Label column — no extra features required.
+
+**Sort by label:** Click the **Sensitivity Label** column header. Click again to reverse.
+
+**Find all emails with a specific label:** Press **Ctrl+Shift+F** → **Advanced** tab → **Field** → **User-defined fields in folder** → **Sensitivity Label**. Set your condition and click Find Now.
+
+**Group by label:** **View** → **View Settings** → **Group By** → select **Sensitivity Label**. All emails with the same label are grouped together with collapsible headers.
+
 ## System Requirements
 
 | Component | Requirement |
