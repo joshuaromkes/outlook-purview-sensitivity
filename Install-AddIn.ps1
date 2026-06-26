@@ -67,7 +67,7 @@ function Uninstall-AddIn {
 function Install-AddIn {
     if (-not $InstallPath) {
         Write-Host "ERROR: -InstallPath is required for installation." -ForegroundColor Red
-        Write-Host "Usage: .\Install-AddIn.ps1 -InstallPath <path-to-publish-folder>" -ForegroundColor Gray
+        Write-Host "Usage: .\Install-AddIn.ps1 -InstallPath path-to-publish-folder" -ForegroundColor Gray
         exit 1
     }
 
