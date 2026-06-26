@@ -80,16 +80,24 @@ This creates `bin\Release\app.publish\` containing the `.vsto` manifest, `.appli
 
 ### Step 2: Install
 
-Close Outlook, then run `setup.exe` from the published folder. This is the official ClickOnce bootstrapper — it installs the VSTO runtime if needed and registers the add-in. No admin elevation required.
+```
+setup.exe /install
+```
 
 ### Uninstall
 
-Settings → Apps & Features → Outlook Purview Sensitivity → Uninstall.
+Manually:
+
+```
+setup.exe /uninstall
+```
+
+Or via Windows Settings → Apps & Features → Outlook Purview Sensitivity → Uninstall.
 
 ### Intune / SCCM Deployment
 
 1. Publish the add-in using Step 1 above
-2. Deploy `setup.exe` from `bin\Release\app.publish\` as a user-context script or package
+2. Deploy `setup.exe /install` as a user-context script or package
 
 ### Creating a Release (for maintainers)
 
