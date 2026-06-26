@@ -87,26 +87,12 @@ namespace Outlook_Purview_Sensitivity
                     {
                         Debug.WriteLine($"[PS] WireUp: {folder.Name}");
 
-                        object curView = null;
-                        try
-                        {
-                            curView = explorer.CurrentView;
-                            if (!(curView is Outlook.TableView))
-                            {
-                                Debug.WriteLine($"[PS] WireUp: view is {curView?.GetType().Name}, switching to Messages");
-                                explorer.CurrentView = "Messages";
-                            }
-                        }
-                        finally
-                        {
-                            if (curView != null) Marshal.ReleaseComObject(curView);
-                        }
+                        ColumnManager.EnsureColumn(folder);
 
                         DetachItemsHandler();
                         _currentItems = folder.Items;
                         _currentItems.ItemAdd += Items_ItemAdd;
 
-                        ColumnManager.EnsureColumn(folder);
                         ColumnManager.StampFolder(folder, maxItems: 50);
                     }
                 }
@@ -142,26 +128,12 @@ namespace Outlook_Purview_Sensitivity
 
                     Debug.WriteLine($"[PS] FolderSwitch: {folder.Name}");
 
-                    object curView = null;
-                    try
-                    {
-                        curView = explorer.CurrentView;
-                        if (!(curView is Outlook.TableView))
-                        {
-                            Debug.WriteLine($"[PS] FolderSwitch: view is {curView?.GetType().Name}, switching to Messages");
-                            explorer.CurrentView = "Messages";
-                        }
-                    }
-                    finally
-                    {
-                        if (curView != null) Marshal.ReleaseComObject(curView);
-                    }
+                    ColumnManager.EnsureColumn(folder);
 
                     DetachItemsHandler();
                     _currentItems = folder.Items;
                     _currentItems.ItemAdd += Items_ItemAdd;
 
-                    ColumnManager.EnsureColumn(folder);
                     ColumnManager.StampFolder(folder, maxItems: 50);
                 }
                 finally
