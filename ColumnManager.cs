@@ -271,11 +271,15 @@ namespace Outlook_Purview_Sensitivity
 
                 if (messagesView != null)
                 {
-                    folder.CurrentView = messagesView;
+                    ((View)messagesView).Apply();
                 }
                 else
                 {
-                    folder.CurrentView = "Messages";
+                    View msgView = views["Messages"];
+                    if (msgView != null)
+                        msgView.Apply();
+                    else
+                        Debug.WriteLine($"[CM] {folder.Name}: Messages view not found");
                 }
 
                 Debug.WriteLine($"[CM] {folder.Name}: set CurrentView to Messages");

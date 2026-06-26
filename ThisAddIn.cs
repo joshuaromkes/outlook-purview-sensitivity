@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Outlook = Microsoft.Office.Interop.Outlook;
+using SysException = System.Exception;
 
 namespace Outlook_Purview_Sensitivity
 {
