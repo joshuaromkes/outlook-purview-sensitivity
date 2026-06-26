@@ -51,29 +51,70 @@ cd outlook-purview-sensitivity
 
 Open `Outlook-Purview-Sensitivity.slnx` in Visual Studio 2022 and press **F5**.
 
-## Deployment
+## Installation & Uninstall
 
-### Option A: ClickOnce Setup (recommended)
+VSTO add-ins don't have a native install/uninstall mechanism — they rely on ClickOnce or registry registration. This project supports both.
+
+### Step 1: Build & Publish
+
+First, publish the add-in from Visual Studio to produce the `.vsto` deployment files:
 
 ```powershell
-# Publish from Visual Studio: Build → Publish → FolderProfile → Publish
+# In Visual Studio: Build → Publish → select "FolderProfile" → Publish
+#
 # Or from command line:
 msbuild /t:Publish /p:PublishProfile=FolderProfile /p:Configuration=Release
-
-# Distribute bin\Release\app.publish\ to users — they run setup.exe
 ```
 
-### Option B: PowerShell Script (IT admins / Intune)
+This creates `bin\Release\app.publish\` containing the `.vsto` manifest, `.application` deployment file, and `setup.exe` bootstrapper.
+
+### Step 2: Install
+
+**Option A — PowerShell Script (recommended for IT admins / Intune)**
+
+Close Outlook, then run:
 
 ```powershell
-# After publishing:
 .\Install-AddIn.ps1 -InstallPath .\bin\Release\app.publish
+```
 
-# Uninstall:
+What it does:
+- Copies published files to `%LocalAppData%\Outlook-Purview-Sensitivity\`
+- Registers the add-in under `HKCU\Software\Microsoft\Office\Outlook\AddIns\Outlook-Purview-Sensitivity`
+- Sets `LoadBehavior=3` (load at startup) and `Manifest` to the `.vsto` file URL
+- No admin elevation needed (per-user HKCU registration)
+
+**Option B — ClickOnce setup.exe**
+
+Distribute the contents of `bin\Release\app.publish\` to end users. They run `setup.exe`, which installs the add-in and downloads the VSTO runtime if needed.
+
+### Uninstall
+
+Close Outlook, then run:
+
+```powershell
 .\Install-AddIn.ps1 -Uninstall
 ```
 
-The script installs per-user in `%LocalAppData%` with `LoadBehavior=3` (load at startup). No admin elevation needed.
+What it does:
+- Closes Outlook if running
+- Removes the `HKCU\Software\Microsoft\Office\Outlook\AddIns\Outlook-Purview-Sensitivity` registry key
+- Deletes `%LocalAppData%\Outlook-Purview-Sensitivity\`
+- Uninstall is immediate — restart Outlook to see the column removed
+
+**Manual uninstall** (if the script fails):
+
+```powershell
+Remove-Item "HKCU:\Software\Microsoft\Office\Outlook\AddIns\Outlook-Purview-Sensitivity" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item "$env:LocalAppData\Outlook-Purview-Sensitivity" -Recurse -Force -ErrorAction SilentlyContinue
+```
+
+### Intune / SCCM Deployment
+
+1. Publish the add-in using Step 1 above
+2. Package `bin\Release\app.publish\` and `Install-AddIn.ps1` together
+3. Deploy `Install-AddIn.ps1 -InstallPath <path>` as a user-context PowerShell script
+4. The add-in installs per-user without admin elevation
 
 ## Troubleshooting
 
